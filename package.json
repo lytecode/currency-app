@@ -9,8 +9,13 @@
     "dev": "nodemon src/server/index.ts",
     "start": "npm run build && node dist/server/index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "AWS",
+    "SNS",
+    "EMAIL",
+    "Event Driven Architecture"
+  ],
+  "author": "Mbonu Basil",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1274.0",
