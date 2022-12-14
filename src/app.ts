@@ -1,5 +1,6 @@
 import express from 'express';
 import config from './config';
+import Currency from './currency/currency';
 const AWS = require('aws-sdk');
 
 const app = express();
@@ -35,18 +36,31 @@ app.post('/api/subscribe', (req, res) => {
     })
 })
 
-app.post('/api/publish', (req, res) => {
+
+app.post('/api/usd/buy', (req, res) => {
+    const currency = new Currency()
+    const { userId, amount, } = req.body;
+
+    if (!userId || amount <= 0) {
+        return res.status(400).json({ error: `accountId is required and amount must be greater than zero` });
+    }
+
+    const usd = currency.buyUSD(amount);
+
+    //send a push notification to bank Bee
     const params = {
         TopicArn: config.SNS_TOPIC_ARN,
-        Subject: req.body.subject,
-        Message: req.body.message,
+        Subject: `Transaction Initiated`,
+        Message: `Credit account number: ${userId} with ${usd} USD`
     }
 
     sns.publish(params, (err: any, data: any) => {
         if (err) throw new Error(err)
 
-        res.json(data);
+        console.log(data);
     })
+
+    res.status(200).json(`Conversion of ${amount} NRA to USD in progress...`)
 })
 
 export default app;
