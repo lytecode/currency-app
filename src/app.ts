@@ -1,10 +1,52 @@
 import express from 'express';
+import config from './config';
+const AWS = require('aws-sdk');
 
 const app = express();
+
+//Setup AWS
+AWS.config.update({
+    region: "us-east-1",
+    accessKeyId: config.AWS_ACCESS_KEY_ID,
+    secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+})
+const sns = new AWS.SNS()
 
 app.use(express.json());
 app.get('/api', (req, res) => {
     res.json("Welcome to currency API");
+});
+
+app.get('/api/status', (req, res) => {
+    res.json({ status: "OK", sns })
+})
+
+app.post('/api/subscribe', (req, res) => {
+    const params = {
+        Protocol: "EMAIL",
+        TopicArn: config.SNS_TOPIC_ARN,
+        Endpoint: req.body.email,
+    }
+
+    sns.subscribe(params, (err: any, data: any) => {
+        if (err) throw new Error(err)
+
+        res.json(data);
+    })
+})
+
+app.post('/api/publish', (req, res) => {
+    const params = {
+        TopicArn: config.SNS_TOPIC_ARN,
+        Subject: req.body.subject,
+        Message: req.body.message,
+    }
+
+    sns.publish(params, (err: any, data: any) => {
+        if (err) throw new Error(err)
+
+        res.json(data);
+    })
 })
 
 export default app;
